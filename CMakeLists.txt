@@ -514,6 +514,8 @@ create_target_launcher(tutorial17_rotations WORKING_DIRECTORY "${CMAKE_CURRENT_S
 # User playground
 add_executable(playground 
 	playground/playground.cpp
+	common/controls.cpp
+	common/controls.hpp
 	common/shader.cpp
 	common/shader.hpp
 	common/texture.cpp
