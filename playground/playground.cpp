@@ -18,6 +18,7 @@ using namespace glm;
 #include <common/controls.hpp>
 #include <common/objloader.hpp>
 #include <common/shader.hpp>
+#include <common/text2D.hpp>
 #include <common/texture.hpp>
 #include <common/vboindexer.hpp>
 
@@ -66,14 +67,14 @@ int main( void )
 	glDepthFunc(GL_LESS);
 
 	// Cull triangles which normal is not towards the camera
-	//glEnable(GL_CULL_FACE); // Not this time !
+	glEnable(GL_CULL_FACE);
 
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
 
 	// Create and compile our GLSL program from the shaders
-	GLuint programID = LoadShaders( "StandardShading.vertexshader", "StandardTransparentShading.fragmentshader" );
+	GLuint programID = LoadShaders( "StandardShading.vertexshader", "StandardShading.fragmentshader" );
 
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixID = glGetUniformLocation(programID, "MVP");
@@ -125,13 +126,12 @@ int main( void )
 	glUseProgram(programID);
 	GLuint LightID = glGetUniformLocation(programID, "LightPosition_worldspace");
 
+	// Initialize our little text library with the Holstein font
+	initText2D( "Holstein.DDS" );
+
 	// For speed computation
 	double lastTime = glfwGetTime();
 	int nbFrames = 0;
-
-	// Enable blending
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	do{
 		// Measure speed
@@ -223,6 +223,10 @@ int main( void )
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);
 
+		char text[256];
+		sprintf(text,"%.2f sec", glfwGetTime() );
+		printText2D(text, 10, 500, 60);
+
 		// Swap buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
@@ -230,6 +234,9 @@ int main( void )
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
 		   glfwWindowShouldClose(window) == 0 );
+
+	// Delete the text's VBO, the shader and the texture
+	cleanupText2D();
 
 	// Cleanup VBO and shader
 	glDeleteBuffers(1, &elementbuffer);
