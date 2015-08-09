@@ -16,11 +16,53 @@ GLFWwindow* window;
 using namespace glm;
 
 #include <common/controls.hpp>
+#include <common/GLError.hpp>
 #include <common/objloader.hpp>
 #include <common/shader.hpp>
 #include <common/text2D.hpp>
 #include <common/texture.hpp>
 #include <common/vboindexer.hpp>
+
+// The ARB_debug_output extension, which is used in this tutorial as an example,
+// can call a function of ours with error messages.
+// This function must have this precise prototype ( parameters and return value )
+// See http://www.opengl.org/registry/specs/ARB/debug_output.txt , "New Types" :
+//	The callback function that applications can define, and
+//	is accepted by DebugMessageCallbackARB, is defined as:
+//
+//	    typedef void (APIENTRY *DEBUGPROCARB)(enum source,
+//	                                          enum type,
+//	                                          uint id,
+//	                                          enum severity,
+//	                                          sizei length,
+//	                                          const char* message,
+//	                                          void* userParam);
+void APIENTRY DebugOutputCallback(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, GLvoid* userParam){
+
+	printf("OpenGL Debug Output message : ");
+
+	if(source == GL_DEBUG_SOURCE_API_ARB)					printf("Source : API; ");
+	else if(source == GL_DEBUG_SOURCE_WINDOW_SYSTEM_ARB)	printf("Source : WINDOW_SYSTEM; ");
+	else if(source == GL_DEBUG_SOURCE_SHADER_COMPILER_ARB)	printf("Source : SHADER_COMPILER; ");
+	else if(source == GL_DEBUG_SOURCE_THIRD_PARTY_ARB)		printf("Source : THIRD_PARTY; ");
+	else if(source == GL_DEBUG_SOURCE_APPLICATION_ARB)		printf("Source : APPLICATION; ");
+	else if(source == GL_DEBUG_SOURCE_OTHER_ARB)			printf("Source : OTHER; ");
+
+	if(type == GL_DEBUG_TYPE_ERROR_ARB)						printf("Type : ERROR; ");
+	else if(type == GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR_ARB)	printf("Type : DEPRECATED_BEHAVIOR; ");
+	else if(type == GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR_ARB)	printf("Type : UNDEFINED_BEHAVIOR; ");
+	else if(type == GL_DEBUG_TYPE_PORTABILITY_ARB)			printf("Type : PORTABILITY; ");
+	else if(type == GL_DEBUG_TYPE_PERFORMANCE_ARB)			printf("Type : PERFORMANCE; ");
+	else if(type == GL_DEBUG_TYPE_OTHER_ARB)				printf("Type : OTHER; ");
+
+	if(severity == GL_DEBUG_SEVERITY_HIGH_ARB)				printf("Severity : HIGH; ");
+	else if(severity == GL_DEBUG_SEVERITY_MEDIUM_ARB)		printf("Severity : MEDIUM; ");
+	else if(severity == GL_DEBUG_SEVERITY_LOW_ARB)			printf("Severity : LOW; ");
+
+	// You can set a breakpoint here ! Your debugger will stop the program,
+	// and the callstack will immediately show you the offending call.
+	printf("Message : %s\n", message);
+}
 
 int main( void )
 {
@@ -38,6 +80,15 @@ int main( void )
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+	// ARB_debug_output is a bit special,
+	// it requires creating the OpenGL context
+	// with paticular flags.
+	// GLFW expose it this way; if you use SDL, SFML, freeGLUT
+	// or other, check the documentation.
+	// If you use custom code, read the spec :
+	// http://www.opengl.org/registry/specs/ARB/debug_output.txt
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
+
 	// Open a window and create its OpenGL context
 	window = glfwCreateWindow(640, 480, "Playground", NULL, NULL);
 	if( window == NULL ){
@@ -54,6 +105,29 @@ int main( void )
 		return -1;
 	}
 
+	int NumberOfExtensions;
+	glGetIntegerv(GL_NUM_EXTENSIONS, &NumberOfExtensions);
+	for(int i=0; i<NumberOfExtensions; i++) {
+		const GLubyte *ccc=glGetStringi(GL_EXTENSIONS, i);
+		printf("%s\n", ccc);
+	}
+
+	// Example 1 :
+	if ( GLEW_AMD_seamless_cubemap_per_texture ){
+		printf("The GL_AMD_seamless_cubemap_per_texture is present, (but we're not goint to use it)\n");
+		// Now it's legal to call glTexParameterf with the TEXTURE_CUBE_MAP_SEAMLESS_ARB parameter
+		// You HAVE to test this, because obviously, this code would fail on non-AMD hardware.
+	}
+
+	// Example 2 :
+	if ( GLEW_ARB_debug_output ){
+		printf("The OpenGL implementation provides debug output. Let's use it !\n");
+		glDebugMessageCallbackARB(&DebugOutputCallback, NULL);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
+	}else{
+		printf("ARB_debug_output unavailable. You have to use glGetError() and/or gDebugger to catch mistakes.\n");
+	}
+
 	// Ensure we can capture the escape key being pressed below
 	glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 	glfwSetCursorPos(window, 640/2, 480/2);
@@ -63,11 +137,17 @@ int main( void )
 
 	// Enable depth test
 	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH); // SHOULD BE GL_DEPTH_TEST ! WILL TRIGGER AN ERROR MESSAGE !
+	//check_gl_error();
 	// Accept fragment if it closer to the camera than the former one
 	glDepthFunc(GL_LESS);
+	//glDepthFunc(GL_LEFT);  // SHOULD BE GL_LESS ! WILL TRIGGER AN ERROR MESSAGE !
+	//check_gl_error();
 
 	// Cull triangles which normal is not towards the camera
 	glEnable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE_MODE); // SHOULD BE GL_CULL_FACE ! WILL TRIGGER AN ERROR MESSAGE !
+	//check_gl_error();
 
 	GLuint VertexArrayID;
 	glGenVertexArrays(1, &VertexArrayID);

@@ -24,10 +24,10 @@ using namespace glm;
 // The ARB_debug_output extension, which is used in this tutorial as an example,
 // can call a function of ours with error messages.
 // This function must have this precise prototype ( parameters and return value )
-// See http://www.opengl.org/registry/specs/ARB/debug_output.txt , "New Types" : 
+// See http://www.opengl.org/registry/specs/ARB/debug_output.txt , "New Types" :
 //	The callback function that applications can define, and
 //	is accepted by DebugMessageCallbackARB, is defined as:
-//	
+//
 //	    typedef void (APIENTRY *DEBUGPROCARB)(enum source,
 //	                                          enum type,
 //	                                          uint id,
@@ -77,14 +77,14 @@ int main( void )
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// ARB_debug_output is a bit special, 
+	// ARB_debug_output is a bit special,
 	// it requires creating the OpenGL context
 	// with paticular flags.
 	// GLFW expose it this way; if you use SDL, SFML, freeGLUT
 	// or other, check the documentation.
-	// If you use custom code, read the spec : 
+	// If you use custom code, read the spec :
 	// http://www.opengl.org/registry/specs/ARB/debug_output.txt
-	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1); 
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, 1);
 
 	// Open a window and create its OpenGL context
 	window = glfwCreateWindow( 1024, 768, "Tutorial 12 - Extensions", NULL, NULL);
@@ -113,7 +113,7 @@ int main( void )
 	if ( GLEW_ARB_debug_output ){
 		printf("The OpenGL implementation provides debug output. Let's use it !\n");
 		glDebugMessageCallbackARB(&DebugOutputCallback, NULL);
-		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB); 
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
 	}else{
 		printf("ARB_debug_output unavailable. You have to use glGetError() and/or gDebugger to catch mistakes.\n");
 	}
@@ -148,7 +148,7 @@ int main( void )
 
 	// Load the texture
 	GLuint Texture = loadDDS("uvmap.DDS");
-	
+
 	// Get a handle for our "myTextureSampler" uniform
 	GLuint TextureID  = glGetUniformLocation(programID, "myTextureSampler");
 
@@ -220,7 +220,7 @@ int main( void )
 		glm::mat4 ModelMatrix = glm::mat4(1.0);
 		glm::mat4 MVP = ProjectionMatrix * ViewMatrix * ModelMatrix;
 
-		// Send our transformation to the currently bound shader, 
+		// Send our transformation to the currently bound shader,
 		// in the "MVP" uniform
 		glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 		glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &ModelMatrix[0][0]);

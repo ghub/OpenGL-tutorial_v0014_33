@@ -516,6 +516,8 @@ add_executable(playground
 	playground/playground.cpp
 	common/controls.cpp
 	common/controls.hpp
+	common/GLError.cpp
+	common/GLError.hpp
 	common/objloader.cpp
 	common/objloader.hpp
 	common/shader.cpp
